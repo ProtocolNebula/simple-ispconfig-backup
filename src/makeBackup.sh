@@ -10,8 +10,13 @@ MAIL_FOLDER=/var/vmail
 
 
 if [ ! -d ${BACKUP_FOLDER} ]; then
-	echo EL DIRECTORIO DE BACKUPS NO EXISTE
-	exit;
+	echo BACKUP DIRECTORY NOT EXIST
+	echo PLEASE, CREATE MANUALLY OR MOUNT A PARTITION IN IT
+	echo 
+	echo mkdir $BACKUP_FOLDER
+	echo mount /dev/sdxx $BACKUP_FOLDER
+	echo 
+	exit 1;
 fi
 
 
@@ -20,11 +25,13 @@ fi
 # Make a backup of a folder content (/var/www, /var/vmail...)
 # PARAM 1: Full path to SOURCE folder
 # PARAM 2: Full path to DESTINATION folder
-# PARAM 3: Incremental backup? True/False
+# PARAM 3: Backup type (mysql, www...)
+# PARAM 4: Incremental backup? True/False
 function backupFolder () {
 	echo Doing backup of $1 to $2
 
-#	tar czf 
+	mkdir -p ${2}	
+	tar -pczf ${2}/${3}.tar.gz "${1}" > /dev/null
 	#for i in `ls -a $1`; do
 	#	if [[ "$i" != "." && "$i" != ".." ]]; then
 	#		DIRECTORIES=$DIRECTORIES" "$VARDIR"/"$i
@@ -38,7 +45,7 @@ function backupFolder () {
 DO_INCREMENTAL=false
 CUR_DATE=$(date +%Y_%m_%d)
 
-backupFolder $WEB_FOLDER $BACKUP_FOLDER/$CUR_DATE/www $DO_INCREMENTAL
-backupFolder $MYSQL_FOLDER $BACKUP_FOLDER/$CUR_DATE/mysql $DO_INCREMENTAL
-backupFolder $MAIL_FOLDER $BACKUP_FOLDER/$CUR_DATE/vmail $DO_INCREMENTAL
+backupFolder $WEB_FOLDER $BACKUP_FOLDER/$CUR_DATE www $DO_INCREMENTAL
+backupFolder $MYSQL_FOLDER $BACKUP_FOLDER/$CUR_DATE mysql $DO_INCREMENTAL
+backupFolder $MAIL_FOLDER $BACKUP_FOLDER/$CUR_DATE vmail $DO_INCREMENTAL
 
