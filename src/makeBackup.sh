@@ -7,7 +7,10 @@ BACKUP_FOLDER=/backups
 WEB_FOLDER=/var/www/clients
 MYSQL_FOLDER=/var/lib/mysql
 MAIL_FOLDER=/var/vmail
+OTHER_FOLDERS=/etc
 
+# Delete all current backups (temporal)
+rm -rf $BACKUP_FOLDER/*
 
 if [ ! -d ${BACKUP_FOLDER} ]; then
 	echo BACKUP DIRECTORY NOT EXIST
@@ -48,4 +51,6 @@ CUR_DATE=$(date +%Y_%m_%d)
 backupFolder $WEB_FOLDER $BACKUP_FOLDER/$CUR_DATE www $DO_INCREMENTAL
 backupFolder $MYSQL_FOLDER $BACKUP_FOLDER/$CUR_DATE mysql $DO_INCREMENTAL
 backupFolder $MAIL_FOLDER $BACKUP_FOLDER/$CUR_DATE vmail $DO_INCREMENTAL
+backupFolder $OTHER_FOLDERS $BACKUP_FOLDER/$CUR_DATE others
+
 
