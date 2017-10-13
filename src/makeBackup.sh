@@ -33,16 +33,21 @@ fi
 function backupFolder () {
 	echo Doing backup of $1 to $2
 
-	mkdir -p ${2}	
-	tar -pczf ${2}/${3}.tar.gz "${1}" > /dev/null
-	#for i in `ls -a $1`; do
-	#	if [[ "$i" != "." && "$i" != ".." ]]; then
-	#		DIRECTORIES=$DIRECTORIES" "$VARDIR"/"$i
-	#		echo $i
-	#	fi
-	#done
+	destFolder=${2}
+	mkdir -p ${destFolder}	
+	#tar -pczf ${2}/${3}.tar.gz "${1}" > /dev/null
+	for i in `ls -a $1`; do
+		if [[ "$i" != "." && "$i" != ".." ]]; then
+			echo -e Comenzando backup de ${3} del directorio ${i}
+			#DIRECTORIES=$DIRECTORIES" "$VARDIR"/"$i
+			#echo $i
+			file_name=$(basename "${i}")_${3}.tar.gz
+			tar Ppzcf $destFolder/$file_name --exclude-backups  --exclude=*backup* "${1}/${i}"
+		fi
+	done
 
 	echo -e "\n"
+	#exit
 }
 
 DO_INCREMENTAL=false
