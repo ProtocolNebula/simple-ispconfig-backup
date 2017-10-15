@@ -25,6 +25,44 @@ fi
 
 # Functions
 
+# Make a backup of a folder content (/var/www, /var/vmail...) but putting subfolders in separated files
+# PARAM 1: Full path to SOURCE folder
+# PARAM 2: Full path to DESTINATION folder
+# PARAM 3: Backup type (mysql, www...)
+# PARAM 4: Incremental backup? True/False
+function backupFolderIndependent () {
+	echo Doing backup independent of $1 to $2
+
+	destFolder=${2}
+	mkdir -p ${destFolder}	
+
+	FILES=""
+	for i in `ls -a $1`; do
+		if [[ "$i" != "." && "$i" != ".." ]]; then
+			echo -e Comenzando backup de ${3} del directorio ${i}
+			
+			CURRENT_PATH="${1}/${i}"
+			
+			if [ -d "" ]; then
+				# Folder (independent tar file)
+				file_name=${3}_$(basename "${i}").tar.gz
+				tar Ppzcf $destFolder/$file_name --exclude-backups  --exclude=*backup* "${CURRENT_PATH}"
+			else
+				# File (grouped in the main tar)
+				FILES=$FILES" "$CURRENT_PATH
+			fi
+			#DIRECTORIES=$DIRECTORIES" "$VARDIR"/"$i
+			#echo $i
+		fi
+	done
+	
+	# TAR with files
+	tar Ppzcf $destFolder/${3} "${FILES}"
+
+	echo -e "\n"
+	#exit
+}
+
 # Make a backup of a folder content (/var/www, /var/vmail...)
 # PARAM 1: Full path to SOURCE folder
 # PARAM 2: Full path to DESTINATION folder
@@ -35,27 +73,18 @@ function backupFolder () {
 
 	destFolder=${2}
 	mkdir -p ${destFolder}	
-	#tar -pczf ${2}/${3}.tar.gz "${1}" > /dev/null
-	for i in `ls -a $1`; do
-		if [[ "$i" != "." && "$i" != ".." ]]; then
-			echo -e Comenzando backup de ${3} del directorio ${i}
-			#DIRECTORIES=$DIRECTORIES" "$VARDIR"/"$i
-			#echo $i
-			file_name=$(basename "${i}")_${3}.tar.gz
-			tar Ppzcf $destFolder/$file_name --exclude-backups  --exclude=*backup* "${1}/${i}"
-		fi
-	done
-
+	tar -pczf ${2}/${3}.tar.gz "${1}" > /dev/null
+	
 	echo -e "\n"
-	#exit
 }
+
 
 DO_INCREMENTAL=false
 CUR_DATE=$(date +%Y_%m_%d)
 
-backupFolder $WEB_FOLDER $BACKUP_FOLDER/$CUR_DATE www $DO_INCREMENTAL
-backupFolder $MYSQL_FOLDER $BACKUP_FOLDER/$CUR_DATE mysql $DO_INCREMENTAL
-backupFolder $MAIL_FOLDER $BACKUP_FOLDER/$CUR_DATE vmail $DO_INCREMENTAL
+backupFolderIndependent $WEB_FOLDER $BACKUP_FOLDER/$CUR_DATE www $DO_INCREMENTAL
+backupFolderIndependent $MYSQL_FOLDER $BACKUP_FOLDER/$CUR_DATE mysql $DO_INCREMENTAL
+backupFolderIndependent $MAIL_FOLDER $BACKUP_FOLDER/$CUR_DATE vmail $DO_INCREMENTAL
 backupFolder $OTHER_FOLDERS $BACKUP_FOLDER/$CUR_DATE others
 
 
