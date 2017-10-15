@@ -43,13 +43,13 @@ function backupFolderIndependent () {
 			
 			CURRENT_PATH="${1}/${i}"
 			
-			if [ -d "" ]; then
+			if [ -d "${CURRENT_PATH}" ]; then
 				# Folder (independent tar file)
 				file_name=${3}_$(basename "${i}").tar.gz
 				tar Ppzcf $destFolder/$file_name --exclude-backups  --exclude=*backup* "${CURRENT_PATH}"
 			else
 				# File (grouped in the main tar)
-				FILES=$FILES" "$CURRENT_PATH
+				FILES="${FILES} ${CURRENT_PATH}"
 			fi
 			#DIRECTORIES=$DIRECTORIES" "$VARDIR"/"$i
 			#echo $i
@@ -57,10 +57,10 @@ function backupFolderIndependent () {
 	done
 	
 	# TAR with files
-	tar Ppzcf $destFolder/${3} "${FILES}"
-
+	if [ -n "${FILES}" ]; then
+		$(tar Pczf ${destFolder}/${3}.tar ${FILES})
+	fi
 	echo -e "\n"
-	#exit
 }
 
 # Make a backup of a folder content (/var/www, /var/vmail...)
