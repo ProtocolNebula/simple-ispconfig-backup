@@ -9,6 +9,10 @@ MYSQL_FOLDER=/var/lib/mysql
 MAIL_FOLDER=/var/vmail
 OTHER_FOLDERS=/etc
 
+# Postgres folder (comment if you not have installed postgres)
+PSQL_FOLDER=$(psql -U postgres -c "show data_directory;" | grep -- /)
+
+
 # Delete all current backups (temporal)
 rm -rf $BACKUP_FOLDER/*
 
@@ -38,7 +42,7 @@ function backupFolderIndependent () {
 
 	FILES=""
 	for i in `ls -a $1`; do
-		if [[ "$i" != "." && "$i" != ".." ]]; then
+		if [[ "$i" != "." && "$i" != ".." && "$i" != "pg_xlog" ]]; then
 			echo -e Comenzando backup de ${3} del directorio ${i}
 			
 			CURRENT_PATH="${1}/${i}"
@@ -79,12 +83,25 @@ function backupFolder () {
 }
 
 
+# START BACKUP PROCESS
+
 DO_INCREMENTAL=false
 CUR_DATE=$(date +%Y_%m_%d)
+
 
 backupFolderIndependent $WEB_FOLDER $BACKUP_FOLDER/$CUR_DATE www $DO_INCREMENTAL
 backupFolderIndependent $MYSQL_FOLDER $BACKUP_FOLDER/$CUR_DATE mysql $DO_INCREMENTAL
 backupFolderIndependent $MAIL_FOLDER $BACKUP_FOLDER/$CUR_DATE vmail $DO_INCREMENTAL
 backupFolder $OTHER_FOLDERS $BACKUP_FOLDER/$CUR_DATE others
 
+# If PSQL_FOLDER defined and folder exist
+if [ -n "$PSQL_FOLDER" ]; then
 
+	# Trim text
+	PSQL_FOLDER="$(echo -e "${PSQL_FOLDER}" | tr -d '[:space:]')"
+	if [[ -d "$PSQL_FOLDER" ]]; then
+		echo ${PSQL_FOLDER} backuping;
+		backupFolderIndependent $PSQL_FOLDER $BACKUP_FOLDER/$CUR_DATE/PSQL postgresql $DO_INCREMENTAL
+
+	fi
+fi
